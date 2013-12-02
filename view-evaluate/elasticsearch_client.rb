@@ -1,4 +1,7 @@
 require 'elasticsearch'
+require 'json'
+
+require_relative 'environment'
 
 module Elasticsearch
   module API
@@ -38,22 +41,8 @@ class ElasticsearchClient
     @client = Elasticsearch::Client.new
   end
 
-  def search(query)
-    @client.search index: 'news', type: 'article', q: query
-  end
-
   def search_lemmas(query)
     @client.search index: 'news', type: 'annotated_article', body: {
-      query: {
-        match: {
-          lemmas: query
-        }
-      }
-    }
-  end
-
-  def search_tech_lemmas(query)
-    @client.search index: 'news', type: 'tech_article', body: {
       query: {
         match: {
           lemmas: query
@@ -68,25 +57,9 @@ class ElasticsearchClient
       algorithm: algorithm
   end
 
-  def article(id)
-    begin
-      return @client.get index: 'news', type: 'article', id: id
-    rescue
-    end
-    nil
-  end
-
   def annotated_article(id)
     begin
       return @client.get index: 'news', type: 'annotated_article', id: id
-    rescue
-    end
-    nil
-  end
-
-  def tech_article(id)
-    begin
-      return @client.get index: 'news', type: 'tech_article', id: id
     rescue
     end
     nil
@@ -106,31 +79,6 @@ class ElasticsearchClient
       organizations: article[:organizations],
       locations: article[:locations],
       dates: article[:dates]
-    }
-  end
-
-  def index_tech_article(article)
-    @client.index index: 'news', type: 'tech_article', id: article[:article_id], body: {
-      title: article[:title],
-      published: article[:published],
-      url: article[:url],
-      feedUrl: article[:feed_url],
-      content: article[:content],
-      author: article[:author],
-      lemmas: article[:lemmas],
-      persons: article[:persons],
-      organizations: article[:organizations],
-      locations: article[:locations],
-      dates: article[:dates]
-    }
-  end
-
-  def recent_tech_articles
-    @client.search index: 'news', type: 'tech_article', body: {
-      sort: [
-        published: { order: 'desc' }
-      ],
-      size: 10
     }
   end
 
@@ -162,6 +110,29 @@ class ElasticsearchClient
       ids.shift
       ids.each do |id|
         @client.delete index: 'news', type: 'annotated_article', id: id
+      end
+    end
+  end
+
+  def dump_annotated_articles
+    result = @client.search index: 'news',
+      type: 'annotated_article',
+      scroll: '10m',
+      body: { query: { match_all: {} } }
+
+    dumped_articles = []
+
+    loop do
+      scroll = @client.scroll scroll: '5m', scroll_id: result['_scroll_id']
+      break if scroll['hits'].count == 0
+      scroll['hits']['hits'].each do |article|
+        next if dumped_articles.include? article['_id']
+        dumped_articles << article['_id']
+        puts "Dumping #{article['_id']}"
+        article['_source']['id'] = article['_id']
+        File.open("#{Environment.news_folder}annotated_articles_dump/#{article['_id']}.json",'w') do |f|
+           f.write article['_source'].to_json
+        end
       end
     end
   end
