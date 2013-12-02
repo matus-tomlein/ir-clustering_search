@@ -1,0 +1,6 @@
+{
+  "news_folder": "/Users/matus/Desktop/news/",
+  "crawled_data_folder": "/data/matus/crawled/",
+  "use_port_80": false,
+  "can_include_stanford_nlp": true
+}

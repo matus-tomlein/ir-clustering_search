@@ -1,0 +1,41 @@
+!!!
+%html
+	%head
+		%title Clustering search | Matúš Tomlein
+		%link(rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.1/css/bootstrap.min.css")
+		%script(src="http://code.jquery.com/jquery-1.10.1.min.js")
+		%script(src="http://code.jquery.com/jquery-migrate-1.2.1.min.js")
+		%script(src="scripts/search.js")
+	%body
+		.container
+			.starter-template
+				%h1 Search
+				%p.lead Clustering news search.
+
+				%form#search_form
+					%input#q{ :type => "search", :size => 50 }
+					%input{ :type => "submit" }
+					%p
+						%strong Title:
+						%input{ :type => "checkbox", :name => "title[]", :value => "title", :checked => "checked" } &nbsp;Title
+						%input{ :type => "checkbox", :name => "title[]", :value => "persons" } &nbsp;Persons
+						%input{ :type => "checkbox", :name => "title[]", :value => "organizations" } &nbsp;Organizations
+						%input{ :type => "checkbox", :name => "title[]", :value => "dates" } &nbsp;Dates
+
+					%p
+						%strong Content:
+						%input{ :type => "checkbox", :name => "content[]", :value => "content" } &nbsp;Content
+						%input{ :type => "checkbox", :name => "content[]", :value => "lemmas", :checked => "checked" } &nbsp;Lemmatized content
+						%input{ :type => "checkbox", :name => "content[]", :value => "persons" } &nbsp;Persons
+						%input{ :type => "checkbox", :name => "content[]", :value => "organizations" } &nbsp;Organizations
+						%input{ :type => "checkbox", :name => "content[]", :value => "dates" } &nbsp;Dates
+
+					%p
+						%strong Algorithm:
+						%select#algorithm
+							%option{ :value => "lingo" } lingo
+							%option{ :value => "stc" } stc
+							%option{ :value => "kmeans" } kmeans
+							%option{ :value => "byurl" } byurl
+
+				#results
